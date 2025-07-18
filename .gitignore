@@ -1,0 +1,47 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# API Keys and secrets
+*.key
+secrets.txt
+config.json
+
+# Compiled binaries
+*.exe
+*.out
+f
+a.out
+
+# Object files
+*.o
+*.obj
+
+# Temporary files
+*.tmp
+*.temp
+paragraph_*.txt
+query.txt
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Text corpus (if very large)

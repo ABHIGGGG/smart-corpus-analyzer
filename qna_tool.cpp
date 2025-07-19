@@ -5,17 +5,19 @@
 
 class minheapnode{
 public:
-    int bookcode=0;
-    int pagno=0;
-    int parno=0;
-    long double frac=0;
+    int bookcode=0;        // Which book this paragraph belongs to
+    int pagno=0;           // Page number within the book
+    int parno=0;           // Paragraph number within the page
+    long double frac=0;    // Relevance score (TF-IDF like calculation)
+    
+    // Constructor with parameters
     minheapnode(int b,int p,int pr,long double f){
         bookcode=b;
         pagno=p;
         parno=pr;
         frac=f;
     }
-    minheapnode(){}
+    minheapnode(){}        // Default constructor
 };
 
 class minheap{
@@ -28,6 +30,8 @@ public:
         this->k=k;
     }
     minheap(){}
+
+    //Some helper functions for in heap class
 
     void swap(minheapnode &a, minheapnode &b) {
         minheapnode temp = a;
@@ -50,66 +54,62 @@ public:
     int getRightChildIndex(int i) {
         return 2 * i + 2;
     }
+    
 
+    // Maintains min-heap property after insertion by moving element up.
     void heapifyUp(int index) {
     if (index == 0) return; // base condition for termination of a recursive invocation of the fnc
-    
-    int parentIndex = getParentIndex(index);
-    
-    if (heap[parentIndex].frac > heap[index].frac) {
-      swap(heap[parentIndex], heap[index]);
-      heapifyUp(parentIndex);
+        
+        int parentIndex = getParentIndex(index);
+        
+        if (heap[parentIndex].frac > heap[index].frac) {
+            swap(heap[parentIndex], heap[index]);
+            heapifyUp(parentIndex);
+        }
     }
-  }
+
+   //Maintains min-heap property after deletion by moving element down.
   void heapifyDown(int index) {
-    int leftChild = getLeftChildIndex(index);
-    int rightChild = getRightChildIndex(index);
-    
-    if (leftChild >= heap.size()) return; // No children
-    
-    int minindex = index;
-    
-    if (heap[minindex].frac > heap[leftChild].frac) {
-      minindex = leftChild;
+        int leftChild = getLeftChildIndex(index);
+        int rightChild = getRightChildIndex(index);
+        
+        if (leftChild >= heap.size()) return; // No children
+        
+        int minindex = index;
+        
+        if (heap[minindex].frac > heap[leftChild].frac) {
+        minindex = leftChild;
+        }
+        
+        if (rightChild < heap.size() && heap[minindex].frac > heap[rightChild].frac) {
+        minindex = rightChild;
+        }
+        
+        if (minindex != index) {
+        swap(heap[minindex], heap[index]);
+        heapifyDown(minindex);
+        }
     }
-    
-    if (rightChild < heap.size() && heap[minindex].frac > heap[rightChild].frac) {
-      minindex = rightChild;
-    }
-    
-    if (minindex != index) {
-      swap(heap[minindex], heap[index]);
-      heapifyDown(minindex);
-    }
-  }
+
+
+
     minheapnode minElem(){
     return heap[0];
-  }
+    }
 
   minheapnode deleteMin() {
-    // if (heap.empty()) {
-    //   cout << "Heap is empty!" << endl;
-    //   return 0;
-    // }
     minheapnode temp=heap[0];
     heap[0] = heap.back();
     heap.pop_back();
     heapifyDown(0);
     return temp;
-
-  }
+   }
 
   void insert(minheapnode val) {
-    // if (heap.size()>k){
         if (heap[0].frac<val.frac){
         heap[0]=val;
         heapifyDown(0);
     }
-    // }
-    // else{
-    // heap.push_back(val); //satisfies the structural prop
-    // heapifyUp(heap.size() - 1);
-    // }
   }
 
 // void printHeap (){
@@ -122,16 +122,14 @@ public:
   void makeheapempty(){
     heap.clear();
   }
-//   void insertt(minheapnode val){
-//     if (heap[0].frac<val.frac){
-//         heap[0]=val;
-//         heapifyDown(0);
-//     }
-//   }
 
 };
 
+
+//Storage Hierarchy Classes
 using namespace std;
+
+// Node structure to represent a paragraph
 class paranode{
     public:
     long double frac;
@@ -140,6 +138,8 @@ class paranode{
     }
 };
 
+// Node structure to represent a page
+// Contains a vector of paragraphs
 class pagenode{
     public:
     vector<paranode*> vec;
@@ -148,6 +148,8 @@ class pagenode{
     }
 };
 
+// Node structure to represent a book
+// Contains a vector of pages
 class booknode{
     public:
     vector<pagenode*> vec;
@@ -156,6 +158,8 @@ class booknode{
     }
 };
 
+// Node structure to represent a word
+// Contains a linked list of occurrences
 class hashnode{
     public:
     vector<booknode*> vec;
@@ -164,13 +168,41 @@ class hashnode{
     }
 };
 
+
+// Trie structure to store words and their occurrences
+
+/*The trie here serves as a reverse index - for any word, you can quickly find:
+
+How many times it appears in the corpus (corpuscount)
+How many times it appears overall (csvcount)
+Exact locations where it appears (book, page, paragraph)*/
+
+/*
+From dict.cpp (Trie Structure):
+struct wordnode {
+    int bookcode;     // Which book
+    int pageno;       // Which page
+    int parano;       // Which paragraph
+    wordnode* next;   // Next occurrence
+};
+
+struct word {
+    int corpuscount;  // Total occurrences in corpus
+    int csvcount;     // Total occurrences in general English
+    wordnode* head;   // Start of linked list (dummy node)
+    wordnode* tail;   // End of linked list (dummy node)
+};*/
+
 class triehash{
+
     public:
-    hashnode* root;
-    minheap minhp;
-    int bkmax;
-    int pgmax;
-    int prmax;
+        hashnode* root;
+        minheap minhp;
+        int bkmax;
+        int pgmax;
+        int prmax;
+
+    // Constructor to initialize the triehash with book, page, paragraph limits and heap size
     triehash(int bookmax,int pagemax,int paramax,int k){
         root=new hashnode(bookmax);
         bkmax=bookmax;
@@ -178,18 +210,43 @@ class triehash{
         prmax=paramax;
         minhp=minheap(k);
     }
+
+   //Let's take example of freedom name word class so it is the list of all occurrences of the word "freedom" in the corpus
+    //This function inserts the wordlist into the triehash
+    //It iterates through the linked list of occurrences and inserts each occurrence into the triehash
+    //It updates the frequency counts (corpuscount, csvcount) for each occurrence
+    //The triehash is used to store the frequency counts and occurrences of words in the corpus
     void insert(word* wordlist){
+
         if (wordlist==nullptr) return;
         if (wordlist->head==nullptr) return;
+
+        /*head -> [Book1,Page5,Para2] -> [Book1,Page12,Para1] -> [Book2,Page8,Para3] -> ... -> tail
+                        ^
+                     temp starts here*/
         wordnode* temp=wordlist->head->next;
+
+        //High corpus frequency + Low general frequency = High relevance
         long double frac=(static_cast<long double>(wordlist->corpuscount+1))/(wordlist->csvcount+1);
         while (temp!=wordlist->tail){
+
             int bkcode=temp->bookcode;
             int pgno=temp->pageno;
             int parno=temp->parano;
-            if (!root->vec[bkcode]) root->vec[bkcode]=new booknode(pgmax);
-            if (!root->vec[bkcode]->vec[pgno]) root->vec[bkcode]->vec[pgno]=new pagenode(prmax);
-            if (!root->vec[bkcode]->vec[pgno]->vec[parno]) root->vec[bkcode]->vec[pgno]->vec[parno]=new paranode();
+
+            // Check if book  exists, create if not
+                if (!root->vec[bkcode]) 
+                    root->vec[bkcode]=new booknode(pgmax);
+
+                // Check if page  exists in book , create if not  
+                if (!root->vec[bkcode]->vec[pgno]) 
+                    root->vec[bkcode]->vec[pgno]=new pagenode(prmax);
+
+                // Check if paragraph  exists in page , create if not
+                if (!root->vec[bkcode]->vec[pgno]->vec[parno]) 
+                    root->vec[bkcode]->vec[pgno]->vec[parno]=new paranode();
+
+            // Update the fraction for this paragraph
             root->vec[bkcode]->vec[pgno]->vec[parno]->frac+=frac;
             temp=temp->next;
         }
@@ -210,6 +267,8 @@ class triehash{
             }
         }
     }
+
+
   Node* givelargestk(int k){
     Node* temp=nullptr;
     int count = 0;
@@ -287,11 +346,9 @@ QNA_tool::QNA_tool(){
 }
 
 QNA_tool::~QNA_tool(){
-    // Implement your function here
 }
 
 void QNA_tool::insert_sentence(int book_code, int page, int paragraph, int sentence_no, string sentence){
-    // Implement your function here
     dict.insert_sentence(book_code, page, paragraph, sentence_no,sentence);
     pgmaxx=max(page,pgmaxx);
     bmax=max(bmax,book_code);
@@ -434,7 +491,7 @@ void QNA_tool::query_llm(string filename, Node* root, int k, string API_KEY, str
     outfile << question;
     outfile.close();
  
-    // Updated command - no API key needed as it's in .env
+   
     string command = "python ";
     command += filename;
     command += " ";
